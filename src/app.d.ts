@@ -1,5 +1,5 @@
-// See https://kit.svelte.dev/docs/types#app
-// for information about these interfaces
+import type { Prisma } from '@prisma/client';
+
 declare global {
 	namespace App {
 		interface Locals {
@@ -12,6 +12,7 @@ declare global {
 		// interface PageState {}
 		// interface Platform {}
 	}
+	var prisma: Prisma;
 }
 
 export {};
