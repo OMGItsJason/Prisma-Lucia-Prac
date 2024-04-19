@@ -8,6 +8,6 @@ if (dev) {
 	globalThis.prisma = prisma;
 }
 
-const adapter = new PrismaAdapter(prisma.session, prisma.userAccount);
+const adapter = new PrismaAdapter(prisma.session, prisma.user);
 
 export { prisma, adapter };

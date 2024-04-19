@@ -21,20 +21,20 @@ export const actions: Actions = {
 			});
 		}
 
-		const user = await prisma.userAccount.findFirst({
+		const db = await prisma.user.findFirst({
 			where: {
 				username: username
 			}
 		});
 
-		if (user) {
+		if (db) {
 			return fail(409);
 		}
 
 		const userId = generateId(15);
 		const hashedPass = await new Argon2id().hash(password);
 
-		await prisma.userAccount.create({
+		await prisma.user.create({
 			data: {
 				username,
 				id: userId,

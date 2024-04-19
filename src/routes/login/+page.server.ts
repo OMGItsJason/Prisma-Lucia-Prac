@@ -17,24 +17,24 @@ export const actions: Actions = {
 			});
 		}
 
-		const user = await prisma.userAccount.findFirst({
+		const db = await prisma.user.findFirst({
 			where: {
 				username: username
 			}
 		});
 
-		if (!user) {
+		if (!db) {
 			return fail(400, {
 				message: 'Invalid credentials'
 			});
 		}
 
-		const validPass = await new Argon2id().verify(user.password_hash, password);
+		const validPass = await new Argon2id().verify(db.password_hash, password);
 		if (!validPass) {
 			return fail(400);
 		}
 
-		const session = await lucia.createSession(user.id, {});
+		const session = await lucia.createSession(db.id, {});
 		const sessionCookie = lucia.createSessionCookie(session.id);
 		event.cookies.set(sessionCookie.name, sessionCookie.value, {
 			path: '.',
