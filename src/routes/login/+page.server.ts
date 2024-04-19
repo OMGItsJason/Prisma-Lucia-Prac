@@ -1,8 +1,8 @@
-import { lucia } from '$lib/server/auth';
-import { generateId } from 'lucia';
-import { fail, redirect } from '@sveltejs/kit';
-import { prisma } from '$lib/server/prisma';
 import { Argon2id } from 'oslo/password';
+import { fail, redirect } from '@sveltejs/kit';
+import { lucia } from '$lib/server/auth';
+import { prisma } from '$lib/server/prisma';
+
 import type { Actions } from './$types';
 
 export const actions: Actions = {
@@ -10,10 +10,6 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 		const username = formData.get('username');
 		const password = formData.get('password');
-
-		if (!username) {
-			return fail(400);
-		}
 
 		if (typeof password !== 'string' || password.length < 3 || password.length > 255) {
 			return fail(400, {
@@ -27,27 +23,23 @@ export const actions: Actions = {
 			}
 		});
 
-		if (user) {
-			return fail(409);
+		if (!user) {
+			return fail(400, {
+				message: 'Invalid credentials'
+			});
 		}
 
-		const userId = generateId(15);
-		const hashedPass = await new Argon2id().hash(password);
+		const validPass = await new Argon2id().verify(user.password_hash, password);
+		if (!validPass) {
+			return fail(400);
+		}
 
-		await prisma.userAccount.create({
-			data: {
-				username,
-				id: userId,
-				password_hash: hashedPass
-			}
-		});
-
-		const session = await lucia.createSession(userId, {});
+		const session = await lucia.createSession(user.id, {});
 		const sessionCookie = lucia.createSessionCookie(session.id);
 		event.cookies.set(sessionCookie.name, sessionCookie.value, {
 			path: '.',
 			...sessionCookie.attributes
 		});
-		redirect(302, '/logout');
+		redirect(303, '/logout');
 	}
 };

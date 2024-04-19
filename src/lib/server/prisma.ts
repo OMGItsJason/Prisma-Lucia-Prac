@@ -1,14 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaAdapter } from '@lucia-auth/adapter-prisma';
-
-const client = new PrismaClient();
-
-const adapter = new PrismaAdapter(client.session, client.userAccount);
+import { dev } from '$app/environment';
 
 const prisma = globalThis.prisma || new PrismaClient();
 
-if (process.env.NODE_ENV === 'Development') {
-	globalThis.prisma = new PrismaClient();
+if (dev) {
+	globalThis.prisma = prisma;
 }
+
+const adapter = new PrismaAdapter(prisma.session, prisma.userAccount);
 
 export { prisma, adapter };
