@@ -1,24 +1,27 @@
 import { lucia } from '$lib/server/auth';
 import { generateId } from 'lucia';
-import { fail, redirect } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import { prisma } from '$lib/server/prisma';
 import { Argon2id } from 'oslo/password';
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { validateSchema } from '$lib/config/zodschema';
+
+export const load = (async () => {
+	return {
+		form: await superValidate(zod(validateSchema))
+	};
+}) satisfies PageServerLoad;
 
 export const actions: Actions = {
 	default: async (event) => {
-		const formData = await event.request.formData();
-		const username = formData.get('username');
-		const password = formData.get('password');
+		const form = await superValidate(event, zod(validateSchema));
+		const { username, password } = form.data;
+		const regex = /\d/;
 
 		if (!username) {
-			return fail(400);
-		}
-
-		if (typeof password !== 'string' || password.length < 3 || password.length > 255) {
-			return fail(400, {
-				message: 'Invalid password'
-			});
+			return error(400);
 		}
 
 		const db = await prisma.user.findFirst({
@@ -27,8 +30,12 @@ export const actions: Actions = {
 			}
 		});
 
+		if (!regex.test(username) || /^\d+$/.test(username)) {
+			return error(400);
+		}
+
 		if (db) {
-			return fail(409);
+			return error(400);
 		}
 
 		const userId = generateId(15);
@@ -41,13 +48,12 @@ export const actions: Actions = {
 				password_hash: hashedPass
 			}
 		});
-
-		const session = await lucia.createSession(userId, {});
-		const sessionCookie = lucia.createSessionCookie(session.id);
-		event.cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
-		redirect(302, '/logout');
+		// const session = await lucia.createSession(userId, {});
+		// const sessionCookie = lucia.createSessionCookie(session.id);
+		// event.cookies.set(sessionCookie.name, sessionCookie.value, {
+		// 	path: '.',
+		// 	...sessionCookie.attributes
+		// });
+		redirect(302, '/login');
 	}
 };

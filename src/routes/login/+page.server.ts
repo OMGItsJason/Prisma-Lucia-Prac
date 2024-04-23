@@ -1,27 +1,23 @@
 import { Argon2id } from 'oslo/password';
-import { fail, redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
+import { error, fail, redirect } from '@sveltejs/kit';
 import { lucia } from '$lib/server/auth';
 import { prisma } from '$lib/server/prisma';
 import type { Actions } from './$types';
-import { z } from 'zod';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
+import { validateSchema } from '$lib/config/zodschema';
 
-const logInSchema = z.object({
-	username: z.string({ required_error: 'Invalid Email' }).min(1),
-	password: z.string({ required_error: 'Invalid Password' }).min(1)
-});
-
-export const load = async () => {
-	const form = await superValidate(zod(logInSchema));
+export const load = (async () => {
 	return {
-		form
+		form: await superValidate(zod(validateSchema))
 	};
-};
+}) satisfies PageServerLoad;
 
 export const actions: Actions = {
 	default: async (event) => {
-		const formData = await superValidate(event, zod(logInSchema));
+		const formData = await superValidate(event, zod(validateSchema));
+		const { username, password } = formData.data;
 
 		if (!formData) {
 			return fail(400, {
@@ -29,8 +25,6 @@ export const actions: Actions = {
 				error: 'Invalid form data'
 			});
 		}
-
-		const { username, password } = formData.data;
 
 		const db = await prisma.user.findFirst({
 			where: {
@@ -41,20 +35,13 @@ export const actions: Actions = {
 		if (!db) {
 			return fail(400, {
 				formData,
-				message: 'Invalid Username'
-			});
-		}
-
-		if (typeof password !== 'string' || password.length < 3 || password.length > 255) {
-			return fail(400, {
-				formData,
-				message: 'Invalid Password'
+				error: 'Invalid Username'
 			});
 		}
 
 		const validPass = await new Argon2id().verify(db.password_hash, password);
 		if (!validPass) {
-			return fail(400);
+			return error(400);
 		}
 
 		const session = await lucia.createSession(db.id, {});

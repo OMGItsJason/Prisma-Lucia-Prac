@@ -45,6 +45,7 @@
 		"clsx": "^2.1.0",
 		"oslo": "^1.2.0",
 		"prisma": "^5.12.1",
+		"svelte-french-toast": "^1.2.0",
 		"tailwind-merge": "^2.2.2",
 		"tailwind-variants": "^0.2.1"
 	}
