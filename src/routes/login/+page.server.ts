@@ -50,6 +50,14 @@ export const actions: Actions = {
 			path: '.',
 			...sessionCookie.attributes
 		});
-		redirect(303, '/logout');
+		if (db.username === 'vsAdmin') {
+			redirect(300, '/adminpage');
+		}
+		if (db.username === 'vsDesk') {
+			redirect(300, '/deskpage');
+		}
+		else {
+			redirect(301, '/logout');
+		}
 	}
 };

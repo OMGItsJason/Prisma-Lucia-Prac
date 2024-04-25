@@ -14,7 +14,9 @@
 			if (result.status === 400 || result.status === 500) {
 				toast.error('Invalid Sign Up');
 			} else {
-				toast.success('Sign Up Successfully Redirecting To Log In Page');
+				toast('Sign Up Successfully Redirecting To Log In Page For Confirmation', {
+					duration: 5000
+				});
 			}
 		}
 	});

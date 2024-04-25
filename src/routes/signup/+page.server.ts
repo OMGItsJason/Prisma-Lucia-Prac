@@ -30,7 +30,7 @@ export const actions: Actions = {
 			}
 		});
 
-		if (!regex.test(username) || /^\d+$/.test(username)) {
+		if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(username)) {
 			return error(400);
 		}
 
