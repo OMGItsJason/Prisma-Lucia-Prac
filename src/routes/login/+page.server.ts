@@ -55,8 +55,7 @@ export const actions: Actions = {
 		}
 		if (db.username === 'vsDesk') {
 			redirect(300, '/deskpage');
-		}
-		else {
+		} else {
 			redirect(301, '/logout');
 		}
 	}

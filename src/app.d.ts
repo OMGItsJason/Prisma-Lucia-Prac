@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client';
+import type { PrismaClient } from '@prisma/client';
 
 declare global {
 	namespace App {
@@ -6,13 +6,8 @@ declare global {
 			user: import('lucia').User | null;
 			session: import('lucia').Session | null;
 		}
-		// interface Error {}
-		// interface Locals {}
-		// interface PageData {}
-		// interface PageState {}
-		// interface Platform {}
 	}
-	var prisma: Prisma;
-}
 
+	var prisma: PrismaClient;
+}
 export {};

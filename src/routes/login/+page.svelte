@@ -29,3 +29,6 @@
 	<br />
 	<button>Continue</button>
 </form>
+<div>
+	<a href="/login/google">Google</a>
+</div>
